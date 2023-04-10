@@ -1,4 +1,11 @@
 # Add tags to multiple Log Groups based on specific string in a name
+
+## Prerequisites
+
+- To access AWS services with the AWS CLI, you need an AWS account and IAM credentials. When running AWS CLI commands, the AWS CLI needs to have access to those AWS credentials.
+- Install the latest release of the AWS CLI version on your computer.
+- Configure the AWS CLI
+
 To add tags for multiple CloudWatch log groups based on their names, you can use the AWS Command Line Interface (CLI) and run a script that uses the `aws logs tag-log-group` command.
 
 Here's an example script you can use:
