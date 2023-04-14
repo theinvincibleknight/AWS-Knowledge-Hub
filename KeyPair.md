@@ -1,5 +1,10 @@
 # Bash script that uses the AWS CLI to retrieve the name of the key pair used for multiple EC2 instances
 
+## Prerequisites
+- To access AWS services with the `AWS CLI`, you need an `AWS account` and `IAM` credentials. When running AWS CLI commands, the AWS CLI needs to have access to those AWS credentials.
+- Install the latest release of the `AWS CLI` version on your computer.
+- Configure the `AWS CLI`
+
 Here is the bash script:
 
 ```bash
