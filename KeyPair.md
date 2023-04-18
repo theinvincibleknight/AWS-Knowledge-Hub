@@ -33,7 +33,7 @@ chmod +x keypair.sh
 
 Then, simply run the script in your terminal and it will output the name of the key pair used for each instance.
 
-[Optional] You can also use `>` operator to save the output in txt file.
+[Optional] You can also use `>` operator to save the output in txt file. 
 ```bash
 sh keypair.sh > output.txt
 ```
