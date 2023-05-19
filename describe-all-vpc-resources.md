@@ -1,5 +1,7 @@
 # Python script to describe all of your VPC resources
 
+vpc-resources.py
+
 ```python
 import logging
 import boto3
@@ -331,10 +333,12 @@ if __name__ == '__main__':
         logger.info("The given VPC was not found in {}".format(args.region))
 ```
 
-Usage: `vpc-inside.py [-h] -v VPC [-r REGION] [-p PROFILE]`
+**Usage:** `vpc-resources.py [-h] -v VPC [-r REGION] [-p PROFILE]`
 
 optional arguments:
   -h, --help                     show this help message and exit
   -v VPC, --vpc VPC              The VPC to annihilate
   -r REGION, --region REGION     AWS region that the VPC resides in
   -p PROFILE, --profile PROFILE  AWS profile
+  
+**Example:** `python vpc-resources.py -v vpc-0d151ef89787fac94 -r ap-south-1`
