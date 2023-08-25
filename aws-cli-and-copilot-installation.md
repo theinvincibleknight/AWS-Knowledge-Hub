@@ -66,8 +66,8 @@ AWS Copilot is a tool to build, release, and operate production-ready containeri
 ### Install Required Software:
 Before installing AWS Copilot, you need to have a few prerequisites installed on your system:
 
-    - Docker: Make sure Docker is installed and running on your system.
-    - AWS CLI: Install the AWS Command Line Interface if you haven't already.
+- Docker: Make sure Docker is installed and running on your system.
+- AWS CLI: Install the AWS Command Line Interface if you haven't already.
 
 ### Install Copilot:
 
