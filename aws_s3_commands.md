@@ -112,7 +112,43 @@
    ```bash
    aws s3 cp s3://your-bucket-name/source-file.mp4 s3://your-bucket-name/destination-file.mp4
    ```
-   
+23.  **Restore an object from Glacier Deep Archive:**
+   ```bash
+   aws s3 cp s3://your-bucket-name/source-file.mp4 s3://your-bucket-name/destination-file.mp4
+   ```
+24.  Bash Script to restore objects class
+   ```bash
+   # List all objects in the bucket and restore them
+   aws s3api list-objects --bucket your-source-bucket --query "Contents[].{Key: Key}" --output text | while read key; do
+      aws s3api restore-object --bucket your-source-bucket --key "$key" --restore-request Days=1
+   done
+   ```
+25. List all the objects
+   ```bash
+   aws s3api list-objects --bucket your-source-bucket --query "Contents[].{Key: Key}" --output text
+   ```
+
+26. check the status of the restore
+   ```bash
+`  aws s3api head-object --bucket your-source-bucket --key your-object-key
+   ```
+
+27. copy all restored objects
+   ```
+   aws s3 sync s3://your-source-bucket s3://your-destination-bucket
+   ```
+
+28. List Objects in the Bucket with last modified time
+   ```bash
+   aws s3api list-objects-v2 --bucket your-source-bucket --query "Contents[].[Key, LastModified]" --output json
+   ```
+
+29. Sort the Output
+   ```bash
+   aws s3api list-objects-v2 --bucket your-source-bucket --query "Contents[].[Key, LastModified]" --output json | jq 'sort_by(.[1]) | reverse'
+   ```
+
+
 ### Notes:
 - Ensure that you have the necessary permissions to perform these actions in your AWS account.
 - Replace `your-bucket-name`, `/path/of/source`, and other placeholders with your actual bucket name and paths.
