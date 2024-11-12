@@ -23,7 +23,7 @@ LOG_FILE="restore_log.txt"
 # Loop through the objects and restore from Glacier Deep Archive
 while read line; do
   echo "Restoring object: $line" >> $LOG_FILE
-  aws s3api restore-object --bucket boeing-sdm-backup --key "$line" --restore-request Days=1 >> $LOG_FILE 2>&1
+  aws s3api restore-object --bucket bucket-name --key "$line" --restore-request Days=1 >> $LOG_FILE 2>&1
   if [ $? -eq 0 ]; then
     echo "Restore successful for object: $line" >> $LOG_FILE
   else
