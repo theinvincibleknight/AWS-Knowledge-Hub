@@ -9,6 +9,11 @@ First, list all the objects in the S3 bucket and save them to a text file:
 ```bash
 aws s3 ls s3://bucket-name --recursive --human-readable | awk '{print $5}' > s3_objects.txt
 ```
+Or if filename has space in between, you can remove the first three fields and keep only filenames.
+
+```bash
+aws s3 ls s3://bucket-name/ --recursive | awk '{$1=$2=$3=""; print $0}' | awk '{$1=$1;print}' > s3_objects.txt
+```
 
 ## Step 2: Restore Objects from Glacier Deep Archive
 
