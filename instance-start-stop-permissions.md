@@ -28,4 +28,6 @@ This example shows how you might create an identity-based policy that allows an 
 }
 ```
 
+You can change the `"aws:ResourceTag/Owner": "${aws:username}"` as per your requirement. Like `"aws:ResourceTag/Task": "Deployment"`. You just need to add this Tag Name (Task) and Value (Deployment) to the instance.
+
 Reference: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_examples_ec2_tag-owner.html
