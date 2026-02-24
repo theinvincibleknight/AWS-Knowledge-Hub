@@ -149,9 +149,137 @@ if __name__ == "__main__":
 
 ---
 
-## 📊 Example Output
+## 🔎 Code Explanation
 
-`aws_services_January_2026.csv`:
+### 1. **Imports**
+```python
+import json
+import subprocess
+import datetime
+import csv
+```
+- `json`: to parse the AWS CLI output (which is JSON).
+- `subprocess`: to run AWS CLI commands directly from Python.
+- `datetime`: to calculate the last month’s date range.
+- `csv`: to write the results into a CSV file.
+
+---
+
+### 2. **Get Last Month’s Period**
+```python
+def get_last_month_period():
+    today = datetime.date.today()
+    first_day_this_month = today.replace(day=1)
+    last_day_last_month = first_day_this_month - datetime.timedelta(days=1)
+    start_date = last_day_last_month.replace(day=1).strftime("%Y-%m-%d")
+    end_date = last_day_last_month.strftime("%Y-%m-%d")
+    month_name = last_day_last_month.strftime("%B")
+    year = last_day_last_month.strftime("%Y")
+    return start_date, end_date, month_name, year
+```
+- Finds the **first day of this month**.
+- Subtracts one day → gives the **last day of last month**.
+- From that, calculates:
+  - `start_date` = first day of last month.
+  - `end_date` = last day of last month.
+  - `month_name` and `year` for naming the output file.
+
+Example: If today is **Feb 24, 2026** →  
+- `start_date = 2026-01-01`  
+- `end_date = 2026-01-31`  
+- Output file will be named `aws_services_January_2026.csv`.
+
+---
+
+### 3. **Fetch Services and Costs**
+```python
+def get_services_with_cost():
+    start_date, end_date, month_name, year = get_last_month_period()
+    output_file = f"aws_services_{month_name}_{year}.csv"
+```
+- Calls the date function to get last month’s period.
+- Prepares the output filename with month and year.
+
+---
+
+### 4. **Run AWS CLI Cost Explorer Command**
+```python
+cmd = [
+    "aws", "ce", "get-cost-and-usage",
+    "--time-period", f"Start={start_date},End={end_date}",
+    "--granularity", "MONTHLY",
+    "--metrics", "UnblendedCost",
+    "--group-by", "Type=DIMENSION,Key=SERVICE"
+]
+result = subprocess.run(cmd, capture_output=True, text=True)
+```
+- Runs the AWS CLI `ce get-cost-and-usage` command.
+- Groups results by **SERVICE**.
+- Retrieves **UnblendedCost** (raw cost before discounts/credits).
+- Captures the JSON output.
+
+---
+
+### 5. **Parse JSON Output**
+```python
+data = json.loads(result.stdout)
+services = []
+for time_block in data.get("ResultsByTime", []):
+    for group in time_block.get("Groups", []):
+        keys = group.get("Keys", [])
+        if keys:
+            service_name = keys[0]
+            amount = group["Metrics"]["UnblendedCost"]["Amount"]
+            services.append((service_name, float(amount)))
+```
+- Loops through the JSON response.
+- Extracts:
+  - `service_name` (e.g., Amazon EC2, Amazon S3).
+  - `amount` (cost in USD).
+- Stores them in a list.
+
+---
+
+### 6. **Deduplicate and Sum Costs**
+```python
+service_costs = {}
+for svc, amt in services:
+    service_costs[svc] = service_costs.get(svc, 0.0) + amt
+```
+- If a service appears multiple times, sums up its costs.
+- Creates a dictionary: `{Service: TotalCost}`.
+
+---
+
+### 7. **Save Results to CSV**
+```python
+with open(output_file, "w", newline="") as f:
+    writer = csv.writer(f)
+    writer.writerow(["Service", "Cost (USD)"])
+    total_cost = 0.0
+    for svc, amt in sorted(service_costs.items()):
+        writer.writerow([svc, f"{amt:.2f}"])
+        total_cost += amt
+    writer.writerow([])
+    writer.writerow(["Total", f"{total_cost:.2f}"])
+```
+- Writes results into a CSV file.
+- Columns: `Service`, `Cost (USD)`.
+- Adds a **Total row** at the bottom.
+
+---
+
+### 8. **Final Output**
+```python
+print(f"Saved {len(service_costs)} services with costs to {output_file}")
+print(f"Period: {start_date} → {end_date}")
+```
+- Prints confirmation of how many services were saved.
+- Shows the reporting period.
+
+---
+
+## 📊 Example Output (`aws_services_January_2026.csv`)
 
 ```
 Service,Cost (USD)
@@ -162,6 +290,15 @@ AWS Backup,5.00
 
 Total,186.46
 ```
+
+---
+
+## ✅ Summary
+- The script **automatically calculates last month’s date range**.
+- Runs **AWS Cost Explorer** via CLI to fetch costs grouped by service.
+- Deduplicates and sums costs per service.
+- Saves results into a **CSV file named with the month and year**.
+- Adds a **total monthly cost** at the bottom.
 
 ---
 
