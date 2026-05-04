@@ -2,23 +2,18 @@
 
 ```bash
 #!/bin/bash
-
-# Set your AWS region (dummy value for public repo)
 REGION="ap-south-1"
-
-# Output file
 OUTPUT_FILE="ssm_parameters.csv"
 
-# Write CSV header
 echo "Name,Value" > $OUTPUT_FILE
 
-# Get all parameter names
-aws ssm describe-parameters --region $REGION \
-  --query "Parameters[].Name" --output text | tr '\t' '\n' | while read NAME; do
-    # Fetch the value (with decryption for SecureString)
-    VALUE=$(aws ssm get-parameter --name "$NAME" --with-decryption --region $REGION \
-             --query "Parameter.Value" --output text)
-    # Append to CSV
+aws ssm get-parameters-by-path \
+  --path "/" \
+  --recursive \
+  --with-decryption \
+  --region $REGION \
+  --query "Parameters[*].[Name,Value]" \
+  --output text | while read NAME VALUE; do
     echo "\"$NAME\",\"$VALUE\"" >> $OUTPUT_FILE
 done
 
@@ -27,52 +22,70 @@ echo "Export complete. Saved to $OUTPUT_FILE"
 
 ---
 
-## Code Explanation
+### 📝 Script Explanation
 
-1. **Region setup**  
-   - Defines the AWS region (`ap-south-1` in this example).  
-   - Ensures all AWS CLI commands run against the correct region.
+1. **Define variables**
+   ```bash
+   REGION="ap-south-1"
+   OUTPUT_FILE="ssm_parameters.csv"
+   ```
+   - `REGION` sets the AWS region where your SSM parameters are stored.
+   - `OUTPUT_FILE` is the name of the CSV file where results will be saved.
 
-2. **Output file initialization**  
-   - Creates a CSV file (`ssm_parameters.csv`).  
-   - Writes the header row (`Name,Value`) to make the file structured.
+2. **Write CSV header**
+   ```bash
+   echo "Name,Value" > $OUTPUT_FILE
+   ```
+   - Creates the output file and writes the header row (`Name,Value`).
 
-3. **List parameter names**  
-   - Uses `aws ssm describe-parameters` to fetch all parameter names in the region.  
-   - Formats the output into a line‑by‑line list using `tr`.
+3. **Fetch parameters in bulk**
+   ```bash
+   aws ssm get-parameters-by-path \
+     --path "/" \
+     --recursive \
+     --with-decryption \
+     --region $REGION \
+     --query "Parameters[*].[Name,Value]" \
+     --output text
+   ```
+   - `get-parameters-by-path` retrieves all parameters under the root path `/`.
+   - `--recursive` ensures it fetches parameters from all nested paths.
+   - `--with-decryption` decrypts values if they are stored as `SecureString`.
+   - `--query "Parameters[*].[Name,Value]"` extracts only the name and value fields.
+   - `--output text` formats the result as plain text (tab-separated).
 
-4. **Loop through parameters**  
-   - Iterates over each parameter name.  
-   - For each name, retrieves its value using `aws ssm get-parameter`.  
-   - Includes `--with-decryption` so that `SecureString` parameters are decrypted before export.
+4. **Process each parameter**
+   ```bash
+   | while read NAME VALUE; do
+       echo "\"$NAME\",\"$VALUE\"" >> $OUTPUT_FILE
+     done
+   ```
+   - The output from AWS CLI is piped into a `while read` loop.
+   - Each line contains a parameter name and its value.
+   - The script writes them into the CSV file, wrapping each field in quotes for safety.
 
-5. **Write to CSV**  
-   - Appends each parameter name and value pair to the CSV file in `"Name","Value"` format.  
-   - Ensures the file can be easily opened in Excel or other tools.
-
-6. **Completion message**  
-   - Prints a final message confirming the export and the location of the CSV file.
+5. **Completion message**
+   ```bash
+   echo "Export complete. Saved to $OUTPUT_FILE"
+   ```
+   - Prints a confirmation message once all parameters are exported.
 
 ---
 
-## Usage
 
-### Prerequisites
-- AWS CLI installed and configured (`aws configure`).  
-- IAM permissions to access SSM parameters (`ssm:DescribeParameters` and `ssm:GetParameter`).  
+- Instead of making **2500+ individual API calls** (`get-parameter` per name), this script uses **bulk retrieval** (`get-parameters-by-path`), which drastically reduces API calls and avoids throttling.
+- The loop simply formats the bulk output into CSV.
 
-### Run Command
-```bash
-sh export_ssm.sh
+---
+
+### 📊 Example Output
+Your CSV will look like this:
+
 ```
-
-### Output
-- A file named `ssm_parameters.csv` will be created in the current directory.  
-- Example contents:
-  ```
-  Name,Value
-  /demo/app/db_password,mySecret123
-  /demo/app/api_key,abcd-efgh-ijkl
-  ```
+Name,Value
+"/app/db/username","admin"
+"/app/db/password","secret123"
+"/service/api/key","abcd-efgh-ijkl"
+```
 
 ---
